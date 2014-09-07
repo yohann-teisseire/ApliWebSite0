@@ -6,27 +6,31 @@ class NewsController extends Library\BackController{
 
 	public function executeInsertComment(\Library\HttpRequest $request){
 
-		$this->page->addVar('title' 'Ajout d\'un commentaire');
-
-		if($request->postExists('pseudo')){
+		if($request->method() == 'POST'){
 			$comment = new \Library\Entities\Comment(array(
 				'news' => $request->getData('news'),
-				'auteur' => $request->getData('pseudo'),
+				'auteur' => $request->getData('auteur'),
 				'contenu' => $request->getData('contenu')
 				));
-
-			if($comment->isValid()){
-				$this->managers->getManagerOf('Comments')->save($comment);
-
-				$this->app->user()->setFlash('Le commentaire a bien été ajouté, merci !');
-
-				$this->app->httpResponse()->redirect('news'.$request->getData('news').'.php');
-			}else{
-				$this->page->addVar('erreurs', $comment->erreurs());
-			}
-
-			$this->page->addVar('comment', $comment);
+		}else{
+			$comment = new \Library\Entities\Comment;
 		}
+
+		$formBuilder = new \Library\FormBuilder\CommentFormBuilder($comment);
+
+		$formBuilder->build();
+
+		$formHandler = new \Library\formHandler($form,$this->managers->getManagerOf('Comments'),$request);
+
+		if($formHandler->process()){
+			$this->managers->getManagerOf('Comments')->save($comment);
+			$this->app->user()->setFlash('Le commentaire a bien été ajouté merci');
+			$this->app->httpResponse()->redirect('news-'.$request->getData('news').'.php');
+		}
+
+		$this->page->addVar('comment', $comment);
+		$this->page->addVar('form', $form->createView());
+		$this->page->addVar('title', 'Ajout commentaire');
 	}
 
 	public function executeIndex(\Library\HttpRequest $request){

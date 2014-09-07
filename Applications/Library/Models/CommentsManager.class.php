@@ -18,4 +18,10 @@ abstract class CommentManager extends \Library\Manager{
 	}
 
 	abstract public function getListOf($news);
+
+	abstract protected function modify(Comment $comment);
+
+	abstract public function delete($id);
+
+	abstract public function get($id);
 }
